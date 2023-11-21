@@ -1,0 +1,15 @@
+.app {
+    &__content {
+        width: 100%;
+        padding: 2rem 0;
+    }
+
+    &__content-page {
+        max-width: $content-width;
+        margin: 0 auto;
+    }
+
+    &__name {
+        margin: 0;
+    }
+}
