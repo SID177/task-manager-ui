@@ -1,8 +1,8 @@
 .app__header {
-    @apply w-full py-8 px-0 border;
+    @apply w-full py-4 px-0;
 
     &-container {
         margin: 0 auto;
-        @apply flex justify-between max-w-[70%];
+        @apply flex justify-between max-w-[80%];
     }
 }

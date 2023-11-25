@@ -1,12 +1,12 @@
 import _ from 'lodash';
-import { apiBase, tokenPath } from './const';
-import { post } from './common';
+import { apiBase, tokenPath, usersPath } from './const';
+import { post, get } from './common';
 
 const storageKey = 'loginToken';
 
 const getCurrentUserData = () => {
     const user = localStorage.getItem( storageKey );
-    return _.isEmpty( user ) ? false : JSON.parse( user );
+    return _.isEmpty( user ) ? null : JSON.parse( user );
 };
 
 const logout = () => localStorage.removeItem( storageKey );
@@ -28,4 +28,13 @@ const login = async ( { username, password } ) => {
     return resp;
 };
 
-export { login, getCurrentUserData, logout };
+const fetchAvatar = async () => {
+    const user = getCurrentUserData();
+    if ( ! user.user_id ) {
+        return false;
+    }
+
+    return await get( apiBase + usersPath );
+};
+
+export { login, getCurrentUserData, logout, fetchAvatar };

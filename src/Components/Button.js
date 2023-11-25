@@ -3,6 +3,14 @@ import { useState } from "react";
 const Button = ( { className, children, onClick, type = '' } ) => {
     const [ clicked, setClicked ] = useState( false );
 
+    /**
+     * Checks whether current object is promise or not
+     *
+     * @param {Object} obj Object.
+     * @returns {Boolean}
+     */
+    const isPromise = ( obj ) => '[object Promise]' === Object.prototype.toString.call( obj );
+
     return (
         <button
             className={ className }
@@ -10,7 +18,7 @@ const Button = ( { className, children, onClick, type = '' } ) => {
             onClick={ ( e ) => {
                 setClicked( true );
                 const resp = onClick( e );
-                if ( resp && '[object Promise]' === Object.prototype.toString.call( resp ) ) {
+                if ( resp && isPromise( resp ) ) {
                     resp.then( () => setClicked( false ) );
                 } else {
                     setClicked( false );

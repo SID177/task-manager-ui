@@ -1,26 +1,34 @@
 import { useState, useEffect } from 'react';
 import _ from 'lodash';
 
+import { categories as glCategories } from '../utils/const';
 import { saveCategories, fetchCategories } from '../utils/categories';
 import TaskList from '../Components/TaskList';
 import NewCategory from '../Components/NewCategory';
+import Modal from '../Components/Modal';
+import { fetchTasks } from '../utils/tasks';
 
-const Tasks = () => {
+const Tasks = ( { refresh } ) => {
+
+    const { appRefresh, setAppRefresh } = refresh;
 
     const [ categories, setCategories ] = useState( [] );
     const [ error, setError ] = useState( false );
-    const [ newCategory, setNewCategory ] = useState( {
-        title: '',
-        description: '',
-        save: false
-    } );
-    const [ isFetchingCategories, setIsFetchingCategories ] = useState( false );
-    const [ isSavingCategories, setIsSavingCategories ] = useState( false );
+    const [ newCategory, setNewCategory ] = useState( null );
+    const [ isFetching, setIsFetching ] = useState( false );
+    const [ modalArgs, setModalArgs ] = useState( null );
 
+    /**
+     * Fetch categories.
+     */
     const handleFetchCategories = () => {
-        setIsFetchingCategories( true );
+        if ( appRefresh ) {
+            setAppRefresh( false );
+        }
+
+        setIsFetching( true );
         fetchCategories().then( resp => {
-            setIsFetchingCategories( false );
+            setIsFetching( false );
 
             if ( ! resp ) {
                 setError( `Something went wrong! Error: ${resp}` )
@@ -28,53 +36,94 @@ const Tasks = () => {
             }
             if ( ! _.isEmpty( resp ) ) {
                 setCategories( resp );
+                glCategories.list = resp;
             }
         } );
     };
 
-    const handleSaveCategories = ( cats ) => {
-        setIsSavingCategories( true );
-        saveCategories( cats ).then( () => setIsSavingCategories( false ) );
+    /**
+     * Save categories.
+     *
+     * @param {Array} cats Categories.
+     */
+    const handleSaveCategories = ( cats ) => saveCategories( cats );
+
+    /**
+     * Delete category.
+     *
+     * @param {string} categoryTitle Category title.
+     */
+    const handleDeleteCategory = async ( categoryTitle ) => {
+        const message = 'Delete this category?';
+        const onSuccess = async () => {
+            const tasks = await fetchTasks( categoryTitle );
+            if ( tasks.length ) {
+                setModalArgs( {
+                    message: 'Category list not empty. Please remove tasks first.',
+                    isAlert: true
+                } );
+                return;
+            }
+
+            const newCategories = categories.filter( category => category.title !== categoryTitle );
+            handleSaveCategories( newCategories );
+            setCategories( newCategories );
+
+            setModalArgs( {
+                message: 'Category deleted successfully.',
+                isAlert: true
+            } );
+        };
+
+        setModalArgs( { message, onSuccess } );
     };
 
-    if ( newCategory.save ) {
-        const newCategories = _.clone( categories );
-        newCategories.push( {
+    // Save new category.
+    if ( ! _.isEmpty( newCategory?.title ) && newCategory?.save ) {
+        const category = {
             title: newCategory.title,
-            description: newCategory.description
-        } );
+            description: newCategory?.description || ''
+        };
 
-        setCategories( newCategories );
-        setNewCategory( {
-            title: '',
-            description: '',
-            save: false
-        } );
-        handleSaveCategories( newCategories );
+        handleSaveCategories( [ ...categories, category ] );
+        setCategories( [ ...categories, category ] );
+        setNewCategory( null );
     }
 
-    const handleDeleteCategory = ( categoryTitle ) => {
-        const newCategories = categories.filter( category => category.title !== categoryTitle );
-        setCategories( newCategories );
-        handleSaveCategories( newCategories );
-    };
-
-    useEffect( handleFetchCategories, [] );
+    useEffect( handleFetchCategories, [ appRefresh ] );
 
     return (
         <div className="container tasks">
             <div className="tasks__container container grid grid-cols-3 gap-[10px]">
 
-                { isFetchingCategories ? (
+                { isFetching ? (
                     <span className="loading loading-spinner loading-lg text-primary"></span>
                 ) : (
                     categories.map( ( category, index ) => (
-                        <TaskList key={ index } category={ category } deleteCategory={ handleDeleteCategory } />
+                        <TaskList
+                            key={ index }
+                            category={ category }
+                            handles={ {
+                                refresh,
+                                delete: handleDeleteCategory
+                            } }
+                            modal={ { modalArgs, setModalArgs } }
+                        />
                     ) )
                 ) }
 
-                <NewCategory newCategory={ newCategory } setNewCategory={ setNewCategory } />
+                <NewCategory
+                    category={ {
+                        category: newCategory,
+                        setCategory: setNewCategory
+                    } }
+                />
             </div>
+
+            <Modal
+                { ...modalArgs }
+                close={ () => setModalArgs( null ) }
+            />
         </div>
     );
 };

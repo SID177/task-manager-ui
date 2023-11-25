@@ -1,54 +1,32 @@
-import _ from "lodash";
-import Button from "../Button";
+import Button from '../Button';
 
-const TaskCard = ( { task, setTask, handleSave, handleCancel, cancelConfirm } ) => {
-
-    const handleCancelEvent = () => {
-        if ( cancelConfirm ) {
-            const confirm = window.confirm( cancelConfirm );
-            if ( ! confirm ) {
-                return;
-            }
-        }
-
-        handleCancel();
-    };
+const TaskCard = ( {
+    task: {
+        title,
+        description
+    },
+    handles
+} ) => {
 
     return (
         <div className="card card-compact glass">
             <div className="card-body">
-                <input
-                    type="text"
-                    placeholder="Enter title..."
-                    className="input w-full"
-                    value={ task.title }
-                    onChange={ ( e ) => setTask( { ...task, title: e.target.value } ) }
-                />
-                { ! _.isEmpty( task.title ) && (
-                    <>
-                        <div className="m-[1px]"></div>
-                        <textarea
-                            className="textarea w-full"
-                            placeholder="Task description..."
-                            value={ task.description }
-                            onChange={ ( e ) => setTask( { ...task, description: e.target.value } ) }
-                        ></textarea>
-                    </>
-                ) }
-                <div className="m-[1px]"></div>
-                <div className="card-actions justify-end">
-                    <div className="join">
+                <div className="card-title justify-between">
+                    <h2>{ title }</h2>
+                    <div className="card-actions">
                         <Button
-                            className="btn join-item btn-sm"
-                            onClick={ handleSave }
-                        >Save</Button>
+                            className="btn btn-square btn-xs"
+                            onClick={ handles.edit }
+                            type="edit"
+                        />
                         <Button
-                            className="btn btn-square join-item btn-sm"
-                            onClick={ handleCancelEvent }
+                            className="btn btn-square btn-xs"
+                            onClick={ handles.delete }
                             type="cancel"
                         />
                     </div>
                 </div>
+                <div>{ description }</div>
             </div>
         </div>
     );

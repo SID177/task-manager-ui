@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import _ from 'lodash';
 
 import { getCurrentUserData } from './utils/login';
@@ -16,25 +16,23 @@ import Header from './Components/Header';
 const App = () => {
 
   const [ currentUser, setCurrentUser ] = useState( null );
+  const [ appRefresh, setAppRefresh ] = useState( false );
 
-  useEffect( () => {
-    const currentUserData = getCurrentUserData();
-    if ( ! _.isEmpty( currentUserData ) ) {
-      setCurrentUser( currentUserData );
-    }
-  }, [] );
+  const savedUser = getCurrentUserData();
+  if ( _.isEmpty( currentUser ) && ! _.isEmpty( savedUser ) ) {
+    setCurrentUser( savedUser );
+  }
 
   return (
-    <div className={ 'app' + ( _.isEmpty( currentUser ) ? ' login' : '' ) }>
-      { !!currentUser ? (
+    <div className={ 'app' + ( _.isEmpty( currentUser ) ? ' login' : '' ) + ' min-h-screen h-full bg-neutral' }>
+      { ! _.isEmpty( currentUser ) ? (
         <>
           <Header>
-            <h1 className="app__name">Task Manager</h1>
-            <Nav setCurrentUser={ setCurrentUser } />
+            <Nav setCurrentUser={ setCurrentUser } refresh={ () => setAppRefresh( true ) } />
           </Header>
 
           <div className="app__content">
-            <Page />
+            <Page refresh={ { appRefresh, setAppRefresh } } />
           </div>
         </>
       ) : (

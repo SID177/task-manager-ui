@@ -1,32 +1,30 @@
 import _ from "lodash";
 import { useState, useEffect, Fragment } from "react";
-import Task from "./Task";
+
 import TaskCard from "./TaskCard";
+import TaskEdit from "./TaskEdit";
 import Button from "../Button";
 import { fetchTasks, deleteTask, createTask, updateTask as updateTaskAPI } from "../../utils/tasks";
 
-const TaskList = ( { category, deleteCategory } ) => {
-    const newObj = {
-        title: '',
-        description: '',
-        save: false,
-        edit: false,
-    };
-    const updateObj = {
-        id: 0,
-        title: '',
-        description: '',
-        category: '',
-        updated: false,
-        edit: false,
-    };
+const TaskList = ( {
+    category,
+    handles,
+    modal: {
+        setModalArgs
+    }
+} ) => {
 
     const [ tasks, setTasks ] = useState( [] );
     const [ isFetching, setIsFetching ] = useState( false );
     const [ error, setError ] = useState( '' );
-    const [ newTask, setNewTask ] = useState( { ...newObj } );
-    const [ updateTask, setUpdateTask ] = useState( { ...updateObj } );
+    const [ newTask, setNewTask ] = useState( null );
+    const [ updateTask, setUpdateTask ] = useState( null );
 
+    const { refresh: { setAppRefresh } } = handles;
+
+    /**
+     * Fetch tasks.
+     */
     const handleFetchTasks = () => {
         setIsFetching( true );
         fetchTasks( category.title )
@@ -43,15 +41,31 @@ const TaskList = ( { category, deleteCategory } ) => {
         } );
     };
 
-    useEffect( handleFetchTasks, [] );
+    /**
+     * Delete task by ID.
+     *
+     * @param {int} id 
+     */
+    const handleDeleteTask = ( id ) => {
+        const message = 'Delete this task?';
+        const onSuccess = () => {
+            setIsFetching( true );
+            deleteTask( id )
+            .then( handleFetchTasks );
+            setModalArgs( null );
+        };
 
-    const resetUpdate = () => {
-        setUpdateTask( { ...updateObj } );
+        setModalArgs( { message, onSuccess } );
     };
 
-    if ( newTask.save && ! _.isEmpty( newTask.title ) ) {
-        const { title, description } = newTask;
-        setNewTask( { ...newObj } );
+    // Initial fetch tasks.
+    useEffect( handleFetchTasks, [] );
+
+    // Save new task.
+    if ( ! _.isEmpty( newTask?.title ) && newTask?.save ) {
+        const { title, description = '' } = newTask;
+        setIsFetching( true );
+        setNewTask( null );
         createTask( {
             title,
             description,
@@ -60,56 +74,62 @@ const TaskList = ( { category, deleteCategory } ) => {
         .then( handleFetchTasks );
     }
 
-    if ( updateTask.updated && ! _.isEmpty( updateTask.title ) ) {
-        resetUpdate();
-        updateTaskAPI( updateTask )
-        .then( handleFetchTasks );
+    // Update task and call app refresh.
+    if ( ! _.isEmpty( updateTask?.title ) && updateTask?.updated ) {
+        updateTaskAPI( updateTask );
+        setUpdateTask( null );
+        setAppRefresh( true );
     }
 
     return (
         <div className="card card-compact bg-primary glass">
+
             <div className="card-body">
                 <div className="card-title justify-between">
                     <h2>{ category.title }</h2>
                     <Button
-                        onClick={ () => deleteCategory( category.title ) }
+                        onClick={ () => handles.delete( category.title ) }
                         type="cancel"
                     />
                 </div>
-                <div className="divider mt-0"></div>
                 <div>
                     { isFetching ? (
                         <span className="loading loading-spinner loading-lg text-primary"></span>
                     ) : (
                         tasks.map( ( task ) => (
                             <Fragment key={ task.id }>
-                                { ( updateTask.id === task.id && updateTask.edit ) ? (
-                                    <TaskCard
-                                        task={ updateTask }
-                                        setTask={ setUpdateTask }
-                                        handleSave={ () => setUpdateTask( { ...updateTask, updated: true } ) }
-                                        handleCancel={ resetUpdate }
+                                { ( updateTask?.id === task.id && updateTask?.edit ) ? (
+                                    <TaskEdit
+                                        task={ { task: updateTask, setTask: setUpdateTask } }
+                                        handles={ {
+                                            save: () => setUpdateTask( { ...updateTask, updated: true } ),
+                                            cancel: () => setUpdateTask( null )
+                                        } }
                                     />
                                 ) : (
-                                    <Task
+                                    <TaskCard
                                         task={ task }
-                                        updateTask={ () => setUpdateTask( { id: task.id, title: task.title, description: task.description, category: task.category, edit: true } ) }
-                                        deleteTask={ () => deleteTask( task.id ).then( () => handleFetchTasks() ) }
+                                        handles={ {
+                                            edit: () => setUpdateTask( { ...task, edit: true, updated: false } ),
+                                            delete: () => handleDeleteTask( task.id )
+                                        } }
                                     />
                                 ) }
-                                <div className="m-4"></div>
+                                <div className="mt-2"></div>
                             </Fragment>
                         ) )
                     ) }
 
-                    { tasks.length > 0 && <div className="divider"></div> }
+                    { tasks.length > 0 && <div className="mt-4"></div> }
 
-                    { newTask.edit ? (
-                        <TaskCard
-                            task={ newTask }
-                            setTask={ setNewTask }
-                            handleSave={ () => setNewTask( { ...newTask, save: true, edit: false } ) }
-                            handleCancel={ () => setNewTask( { ...newTask, edit: false } ) }
+                    { ( newTask?.edit ) ? (
+                        <TaskEdit
+                            task={ { task: newTask, setTask: setNewTask } }
+                            handles={ {
+                                save: () => setNewTask( { ...newTask, save: true, edit: false } ),
+                                cancel: () => setNewTask( { ...newTask, edit: false } )
+                            } }
+                            isNew="true"
                         />
                     ) : (
                         <Button

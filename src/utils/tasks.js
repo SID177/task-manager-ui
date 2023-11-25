@@ -3,7 +3,7 @@ import _ from 'lodash';
 import { apiBase, taskCategoryPath, taskPath } from './const';
 import { getCurrentUserData } from './login';
 
-const fetchTasks = async ( category ) => {
+const fetchTasks = async ( category = '' ) => {
     const currentUser = getCurrentUserData();
     const url = `${apiBase}${taskCategoryPath}${currentUser.user_id}?category=${category}`;
     const resp = await axios( url );
@@ -21,9 +21,6 @@ const fetchTasks = async ( category ) => {
             category: task.task_category,
         } );
     } );
-
-    console.log('tasks');
-    console.log(tasks);
 
     return tasks;
 };

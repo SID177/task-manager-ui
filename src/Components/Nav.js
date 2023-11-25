@@ -1,37 +1,61 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { logout } from '../utils/login';
+import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { fetchAvatar, logout } from '../utils/login';
+import _ from 'lodash';
 
-const Nav = ( { setCurrentUser } ) => {
+const Nav = ( { setCurrentUser, refresh } ) => {
     const navigate = useNavigate();
 
+    const [ avatarUrl, setAvatarUrl ] = useState( '' );
+
+    /**
+     * Call logout functions.
+     */
     const handleLogout = () => {
         logout();
         setCurrentUser( null );
         navigate( '/' );
     };
 
-    return (
-    <nav className="app__navigation">
+    /**
+     * Fetch avatar.
+     */
+    const handleFetchAvatar = () => {
+        fetchAvatar()
+        .then( resp => {
+            if ( ! resp || ! _.isArray( resp.data ) ) {
+                return;
+            }
 
-        <Link to="/" className="hover:text-gray-300">
-            Tasks
-        </Link>
-        <div className="absolute top-12 left-0 bg-white border border-gray-200 p-2 rounded-md shadow-md invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-300">
-            <Link to="/new-task" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                Create New
-            </Link>
+            setAvatarUrl( resp.data[0].avatar_urls[48] );
+        } );
+    };
+
+    const handleRefresh = () => {
+        navigate( '/' );
+        refresh();
+    };
+
+    useEffect( handleFetchAvatar, [] );
+
+    return (
+        <div className="navbar bg-neutral text-neutral-content glass rounded-xl">
+            <div className="flex-1">
+                <a onClick={ handleRefresh } className="btn btn-ghost text-xl">Task-manager</a>
+            </div>
+            <div className="flex-none">
+                <div className="dropdown dropdown-end">
+                    <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
+                        <div className="w-10 rounded-full">
+                            <img alt="Tailwind CSS Navbar component" src={ avatarUrl } />
+                        </div>
+                    </label>
+                    <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-neutral rounded-box w-52 glass">
+                        <li><a onClick={ handleLogout }>Logout</a></li>
+                    </ul>
+                </div>
+            </div>
         </div>
-        <Link to="/category" className="hover:text-gray-300">
-            Category
-        </Link>
-        <button
-            type="button"
-            className="hover:text-gray-300"
-            onClick={ handleLogout }
-        >
-            Logout
-        </button>
-    </nav>
         
     );
 };
