@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import _ from 'lodash';
 
 import { categories as glCategories } from '../utils/const';
-import { saveCategories, fetchCategories } from '../utils/categories';
+import { fetchCategories } from '../utils/categories';
+import { fetchTasks, updateTask } from '../utils/tasks';
 import TaskList from '../Components/TaskList';
 import NewCategory from '../Components/NewCategory';
 import Modal from '../Components/Modal';
-import { fetchTasks } from '../utils/tasks';
+import { DragDropContext, Droppable } from "react-beautiful-dnd";
 
 const Tasks = ( { refresh } ) => {
 
@@ -14,9 +15,10 @@ const Tasks = ( { refresh } ) => {
 
     const [ categories, setCategories ] = useState( [] );
     const [ error, setError ] = useState( false );
-    const [ newCategory, setNewCategory ] = useState( null );
+    const [ isNew, setIsNew ] = useState( null );
     const [ isFetching, setIsFetching ] = useState( false );
     const [ modalArgs, setModalArgs ] = useState( null );
+    const [ refreshComponent, setRefreshComponent ] = useState( false );
 
     /**
      * Fetch categories.
@@ -36,88 +38,84 @@ const Tasks = ( { refresh } ) => {
             }
             if ( ! _.isEmpty( resp ) ) {
                 setCategories( resp );
-                glCategories.list = resp;
             }
         } );
     };
 
-    /**
-     * Save categories.
-     *
-     * @param {Array} cats Categories.
-     */
-    const handleSaveCategories = ( cats ) => saveCategories( cats );
+    const handleDragDrop = ( results ) => {
+        const { destination, source, draggableId } = results;
+        console.log(results);
 
-    /**
-     * Delete category.
-     *
-     * @param {string} categoryTitle Category title.
-     */
-    const handleDeleteCategory = async ( categoryTitle ) => {
-        const message = 'Delete this category?';
-        const onSuccess = async () => {
-            const tasks = await fetchTasks( categoryTitle );
-            if ( tasks.length ) {
-                setModalArgs( {
-                    message: 'Category list not empty. Please remove tasks first.',
-                    isAlert: true
-                } );
+        if ( ! destination || ! source ) {
+            return;
+        }
+
+        const { droppableId } = destination;
+        const { droppableId: sourceDroppableId } = source;
+
+        const sourceCategory = sourceDroppableId.split( '-' )[0];
+        const destinationCategory = droppableId.split( '-' )[0];
+        const taskId = parseInt( draggableId.split( '-' )[0] );
+
+        fetchTasks( sourceCategory )
+        .then( resp => {
+            const task = resp.find( tk => tk.id === taskId );
+            if ( ! task ) {
                 return;
             }
-
-            const newCategories = categories.filter( category => category.title !== categoryTitle );
-            handleSaveCategories( newCategories );
-            setCategories( newCategories );
-
-            setModalArgs( {
-                message: 'Category deleted successfully.',
-                isAlert: true
-            } );
-        };
-
-        setModalArgs( { message, onSuccess } );
+            if ( task.category !== destinationCategory ) {
+                task.category = destinationCategory;
+                console.log('new task');
+                console.log(task);
+                updateTask( task )
+                .then( handleFetchCategories );
+            }
+        } );
     };
 
-    // Save new category.
-    if ( ! _.isEmpty( newCategory?.title ) && newCategory?.save ) {
-        const category = {
-            title: newCategory.title,
-            description: newCategory?.description || ''
-        };
-
-        handleSaveCategories( [ ...categories, category ] );
-        setCategories( [ ...categories, category ] );
-        setNewCategory( null );
-    }
-
     useEffect( handleFetchCategories, [ appRefresh ] );
+    useEffect( () => {
+        glCategories.list = categories;
+    }, [ categories ] );
 
     return (
-        <div className="container tasks">
-            <div className="tasks__container container grid grid-cols-3 gap-[10px]">
+        <div className="tasks">
+            <div className="grid grid-cols-3 gap-[10px]">
 
                 { isFetching ? (
                     <span className="loading loading-spinner loading-lg text-primary"></span>
                 ) : (
-                    categories.map( ( category, index ) => (
-                        <TaskList
-                            key={ index }
-                            category={ category }
-                            handles={ {
-                                refresh,
-                                delete: handleDeleteCategory
-                            } }
-                            modal={ { modalArgs, setModalArgs } }
-                        />
-                    ) )
+                    <DragDropContext onDragEnd={ handleDragDrop }>
+                        { categories.map( ( category, index ) => (
+                            <Droppable key={ index } droppableId={ category.title + '-drop' } type="group">
+                                { ( provided ) => (
+                                    <div {...provided.droppableProps} ref={provided.innerRef}>
+                                        <TaskList
+                                            category={ category }
+                                            categories={ { categories, setCategories } }
+                                            refreshComponent={ { refreshComponent, setRefreshComponent } }
+                                        />
+                                        { provided.placeholder }
+                                    </div>
+                                ) }
+                            </Droppable>
+                        ) ) }
+                    </DragDropContext>
                 ) }
 
-                <NewCategory
-                    category={ {
-                        category: newCategory,
-                        setCategory: setNewCategory
-                    } }
-                />
+                { isNew ? (
+                    <NewCategory
+                        categories={ { categories, setCategories } }
+                        handles={ {
+                            cancel: () => setIsNew( false )
+                        } }
+                    />
+                ) : (
+                    <button
+                        className="btn justify-start w-fit"
+                        onClick={ () => setIsNew( true ) }
+                    >+ New list</button>
+                ) }
             </div>
 
             <Modal

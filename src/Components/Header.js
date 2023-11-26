@@ -1,7 +1,7 @@
 const Header = ( { children } ) => {
     return (
-        <header className="app__header bg-neutral text-neutral-content">
-            <div className="app__header-container">
+        <header className="w-full p-0 bg-neutral text-neutral-content glass">
+            <div className="flex justify-between">
                 { children }
             </div>
         </header>

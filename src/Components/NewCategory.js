@@ -1,73 +1,85 @@
-import _ from 'lodash';
+import _, { isEmpty } from 'lodash';
 import { useState } from 'react';
+import Alert from './Alert';
 import Button from './Button';
+import { saveCategories } from '../utils/categories';
 
 const NewCategory = ( {
-    category: {
-        category,
-        setCategory
+    categories: {
+        categories,
+        setCategories
+    },
+    handles: {
+        cancel
     }
 } ) => {
 
-    const [ addNew, setAddNew ] = useState( false );
+    const [ category, setCategory ] = useState( null );
+    const [ saving, setSaving ] = useState( false );
+    const [ error, setError ] = useState( '' );
 
     /**
      * Handle form submit for new category.
      */
     const handleSubmit = () => {
-        if ( _.isEmpty( category?.title ) ) {
+        if ( isEmpty( category?.title ) ) {
+            setError( 'Category title cannot be empty' );
             return;
         }
 
-        setCategory( { ...category, save: true } );
-        setAddNew( false );
+        const newCategories = [ ...categories, category ];
+
+        saveCategories( newCategories )
+        .then( resp => {
+            setSaving( false );
+            setError( '' );
+            setCategories( newCategories );
+            setCategory( null );
+            cancel();
+        } )
+        .catch( e => {
+            setError( 'Error while creating new category' );
+            setSaving( false );
+        } );
     };
 
     return (
         <div className="card card-compact glass h-fit">
             <div className="card-body">
-                { addNew && (
+                { ! isEmpty( error ) && <Alert message={ error } type="error" /> }
+
+                <input
+                    type="text"
+                    placeholder="Enter title..." 
+                    className="input w-full"
+                    value={ category?.title || '' }
+                    onChange={ ( e ) => setCategory( { ...category, title: e.target.value } ) }
+                />
+                { ! isEmpty( category?.title ) && (
                     <>
-                        <input
-                            type="text"
-                            placeholder="Enter title..." 
-                            className="input w-full"
-                            value={ category?.title || '' }
-                            onChange={ ( e ) => setCategory( { ...category, title: e.target.value } ) }
+                        <textarea
+                            placeholder="Enter description..."
+                            className="textarea w-full"
+                            value={ category?.description || '' }
+                            onChange={ ( e ) => setCategory( { ...category, description: e.target.value } ) }
                         />
-                        { ! _.isEmpty( category?.title ) && (
-                            <>
-                                <textarea
-                                    placeholder="Enter description..."
-                                    className="textarea w-full"
-                                    value={ category?.description || '' }
-                                    onChange={ ( e ) => setCategory( { ...category, description: e.target.value } ) }
-                                />
-                            </>
-                        ) }
                     </>
                 ) }
                 <div className="card-actions justify-end">
-                    { addNew ? (
-                        <div className="join">
-                            <Button
-                                className="btn join-item btn-sm"
-                                onClick={ handleSubmit }
-                            >
-                                Save
-                            </Button>
-                            <Button
-                                className="btn btn-square join-item btn-sm"
-                                onClick={ () => setAddNew( false ) }
-                                type="cancel"
-                            />
-                        </div>
-                    ) : (
-                        <button
-                            className="btn w-full justify-start"
-                            onClick={ () => setAddNew( true ) }
-                        >+ Add new list</button>
-                    ) }
+                    <div className="join">
+                        <Button
+                            className="btn join-item btn-sm"
+                            disabled={ saving }
+                            onClick={ handleSubmit }
+                        >
+                            Save
+                        </Button>
+                        <Button
+                            className="btn btn-square join-item btn-sm"
+                            onClick={ cancel }
+                            type="cancel"
+                        />
+                    </div>
                 </div>
             </div>
         </div>

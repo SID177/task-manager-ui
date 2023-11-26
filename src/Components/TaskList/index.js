@@ -1,26 +1,35 @@
-import _ from "lodash";
+import _, { isEmpty } from "lodash";
 import { useState, useEffect, Fragment } from "react";
 
-import TaskCard from "./TaskCard";
+import Alert from "../Alert";
+import TaskView from "./TaskView";
 import TaskEdit from "./TaskEdit";
 import Button from "../Button";
-import { fetchTasks, deleteTask, createTask, updateTask as updateTaskAPI } from "../../utils/tasks";
+import { fetchTasks } from "../../utils/tasks";
+import { saveCategories } from "../../utils/categories";
+import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 
 const TaskList = ( {
     category,
-    handles,
-    modal: {
-        setModalArgs
+    categories: {
+        categories,
+        setCategories
+    },
+    refreshComponent: {
+        refreshComponent,
+        setRefreshComponent
     }
 } ) => {
 
     const [ tasks, setTasks ] = useState( [] );
     const [ isFetching, setIsFetching ] = useState( false );
     const [ error, setError ] = useState( '' );
-    const [ newTask, setNewTask ] = useState( null );
-    const [ updateTask, setUpdateTask ] = useState( null );
+    const [ isDelete, setIsDelete ] = useState( false );
+    const [ confirmDelete, setConfirmDelete ] = useState( false );
+    const [ isNew, setIsNew ] = useState( false );
 
-    const { refresh: { setAppRefresh } } = handles;
+    console.log('category: ' + category.title);
+    console.log(tasks);
 
     /**
      * Fetch tasks.
@@ -41,103 +50,126 @@ const TaskList = ( {
         } );
     };
 
-    /**
-     * Delete task by ID.
-     *
-     * @param {int} id 
-     */
-    const handleDeleteTask = ( id ) => {
-        const message = 'Delete this task?';
-        const onSuccess = () => {
-            setIsFetching( true );
-            deleteTask( id )
-            .then( handleFetchTasks );
-            setModalArgs( null );
-        };
-
-        setModalArgs( { message, onSuccess } );
-    };
-
     // Initial fetch tasks.
     useEffect( handleFetchTasks, [] );
+    useEffect( () => {
+        if ( category.title !== refreshComponent ) {
+            return;
+        }
+        setRefreshComponent( false );
+        handleFetchTasks();
+    }, [ refreshComponent ] );
 
-    // Save new task.
-    if ( ! _.isEmpty( newTask?.title ) && newTask?.save ) {
-        const { title, description = '' } = newTask;
+    if ( confirmDelete ) {
+        setConfirmDelete( false );
+
+        if ( tasks.length ) {
+            setIsDelete( false );
+            setError( 'Category list not empty.' );
+            setTimeout( () => setError( '' ), 3000 );
+            return;
+        }
+
         setIsFetching( true );
-        setNewTask( null );
-        createTask( {
-            title,
-            description,
-            category: category.title
-        } )
-        .then( handleFetchTasks );
-    }
 
-    // Update task and call app refresh.
-    if ( ! _.isEmpty( updateTask?.title ) && updateTask?.updated ) {
-        updateTaskAPI( updateTask );
-        setUpdateTask( null );
-        setAppRefresh( true );
+        const newCategories = categories.filter( cat => cat.title !== category.title );
+        saveCategories( newCategories )
+        .then( resp => {
+            setIsFetching( false );
+            setCategories( newCategories );
+        } )
+        .catch( e => {
+            setIsFetching( false );
+            setError( 'Could not delete this category' );
+        } );
     }
 
     return (
         <div className="card card-compact bg-primary glass">
 
             <div className="card-body">
+
                 <div className="card-title justify-between">
                     <h2>{ category.title }</h2>
                     <Button
-                        onClick={ () => handles.delete( category.title ) }
+                        onClick={ () => setIsDelete( ! isDelete ) }
                         type="cancel"
                     />
                 </div>
-                <div>
-                    { isFetching ? (
-                        <span className="loading loading-spinner loading-lg text-primary"></span>
-                    ) : (
-                        tasks.map( ( task ) => (
-                            <Fragment key={ task.id }>
-                                { ( updateTask?.id === task.id && updateTask?.edit ) ? (
-                                    <TaskEdit
-                                        task={ { task: updateTask, setTask: setUpdateTask } }
-                                        handles={ {
-                                            save: () => setUpdateTask( { ...updateTask, updated: true } ),
-                                            cancel: () => setUpdateTask( null )
-                                        } }
-                                    />
-                                ) : (
-                                    <TaskCard
-                                        task={ task }
-                                        handles={ {
-                                            edit: () => setUpdateTask( { ...task, edit: true, updated: false } ),
-                                            delete: () => handleDeleteTask( task.id )
-                                        } }
-                                    />
-                                ) }
-                                <div className="mt-2"></div>
-                            </Fragment>
-                        ) )
-                    ) }
 
-                    { tasks.length > 0 && <div className="mt-4"></div> }
+                { ! isEmpty( error ) && <Alert text={ error } type="error" /> }
 
-                    { ( newTask?.edit ) ? (
-                        <TaskEdit
-                            task={ { task: newTask, setTask: setNewTask } }
-                            handles={ {
-                                save: () => setNewTask( { ...newTask, save: true, edit: false } ),
-                                cancel: () => setNewTask( { ...newTask, edit: false } )
-                            } }
-                            isNew="true"
-                        />
-                    ) : (
-                        <Button
-                            className="btn w-full justify-start"
-                            onClick={ () => setNewTask( { ...newTask, edit: true } ) }
-                        >+ Add card</Button>
-                    ) }
-                </div>
+                { isDelete && (
+                    <Alert
+                        text={ `Delete ${category.title}?` }
+                        type="warning"
+                        className="mb-2"
+                    >
+                        <div className="join">
+                            <Button
+                                className="join-item btn btn-square btn-sm"
+                                onClick={ () => setConfirmDelete( true ) }
+                                disabled={ isFetching }
+                                type="right"
+                            />
+                            <Button
+                                onClick={ () => setIsDelete( false ) }
+                                className="join-item btn btn-square btn-sm"
+                                disabled={ isFetching }
+                                type="cancel"
+                            />
+                        </div>
+                    </Alert>
+                ) }
+
+                { isFetching ? (
+                    <span className="loading loading-spinner loading-lg text-primary"></span>
+                ) : (
+                    <>
+                        { tasks.map( ( task, index ) => (
+                            <Draggable key={ index } draggableId={ task.id + '-drag' } index={ index }>
+                                { ( provided, snapshot ) => {
+                                    if ( snapshot.isDragging ) {
+                                        provided.draggableProps.style.left = provided.draggableProps.style.offsetLeft;
+                                        provided.draggableProps.style.top = provided.draggableProps.style.offsetTop;
+                                    }
+                                    return (
+                                        <>
+                                        <div {...provided.dragHandleProps} {...provided.draggableProps} ref={provided.innerRef}>
+                                            <TaskView
+                                                task={ task }
+                                                tasks={ { tasks, setTasks } }
+                                                setRefreshComponent={ setRefreshComponent }
+                                            />
+                                            <div className="mt-2"></div>
+                                        </div>
+                                        { provided.placeholder }
+                                        </>
+                                    );
+                                } }
+                            </Draggable>
+                        ) ) }
+                    </>
+                ) }
+
+                { ( isNew ) ? (
+                    <div className="card card-compact glass">
+                        <div className="card-body">
+                            <TaskEdit
+                                tasks={ { tasks, setTasks } }
+                                handles={ {
+                                    cancel: () => setIsNew( false )
+                                } }
+                                category={ category.title }
+                            />
+                        </div>
+                    </div>
+                ) : (
+                    <Button
+                        className="btn w-full justify-start"
+                        onClick={ () => setIsNew( true ) }
+                    >+ Add card</Button>
+                ) }
             </div>
         </div>
     );

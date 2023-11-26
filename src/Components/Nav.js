@@ -39,7 +39,7 @@ const Nav = ( { setCurrentUser, refresh } ) => {
     useEffect( handleFetchAvatar, [] );
 
     return (
-        <div className="navbar bg-neutral text-neutral-content glass rounded-xl">
+        <div className="navbar">
             <div className="flex-1">
                 <a onClick={ handleRefresh } className="btn btn-ghost text-xl">Task-manager</a>
             </div>
