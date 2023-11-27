@@ -5,9 +5,8 @@ import Alert from "../Alert";
 import TaskView from "./TaskView";
 import TaskEdit from "./TaskEdit";
 import Button from "../Button";
-import { fetchTasks } from "../../utils/tasks";
+import { fetchTask, fetchTasks, updateTask } from "../../utils/tasks";
 import { saveCategories } from "../../utils/categories";
-import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 
 const TaskList = ( {
     category,
@@ -27,9 +26,7 @@ const TaskList = ( {
     const [ isDelete, setIsDelete ] = useState( false );
     const [ confirmDelete, setConfirmDelete ] = useState( false );
     const [ isNew, setIsNew ] = useState( false );
-
-    console.log('category: ' + category.title);
-    console.log(tasks);
+    const [ dragEnterCategory, setDragEnterCategory ] = useState( '' );
 
     /**
      * Fetch tasks.
@@ -84,10 +81,55 @@ const TaskList = ( {
         } );
     }
 
-    return (
-        <div className="card card-compact bg-primary glass">
+    const onDragStart = ( e, task ) => {
+        e.dataTransfer.setData( 'id', task.id );
+    };
 
-            <div className="card-body">
+    const onDrop = ( e, categoryTitle ) => {
+        setDragEnterCategory( '' );
+
+        const taskId = parseInt( e.dataTransfer.getData( 'id' ) );
+        if ( ! taskId ) {
+            return;
+        }
+
+        fetchTask( taskId )
+        .then( task => {
+            if ( task.category === categoryTitle ) {
+                return;
+            }
+
+            setIsFetching( true );
+
+            const oldCat = task.category;
+            task.category = categoryTitle;
+
+            updateTask( task )
+            .then( () => {
+                setIsFetching( false );
+                const newTasks = [ ...tasks, task ];
+                setTasks( newTasks );
+                setRefreshComponent( oldCat );
+            } )
+            .catch( e => setIsFetching( false ) );
+        } )
+        .catch( e => setIsFetching( false ) );
+    };
+
+    const onDragOver = ( e ) => {
+        e.preventDefault();
+        setDragEnterCategory( category.title );
+    };
+
+    return (
+        <div className={ `card card-compact ${category.title === dragEnterCategory ? 'bg-secondary' : 'bg-primary'} glass` }>
+
+            <div
+                className="card-body"
+                onDrop={ ( e ) => onDrop( e, category.title ) }
+                onDragOver={ onDragOver }
+                onDragLeave={ ( e ) => setDragEnterCategory( '' ) }
+            >
 
                 <div className="card-title justify-between">
                     <h2>{ category.title }</h2>
@@ -127,27 +169,20 @@ const TaskList = ( {
                 ) : (
                     <>
                         { tasks.map( ( task, index ) => (
-                            <Draggable key={ index } draggableId={ task.id + '-drag' } index={ index }>
-                                { ( provided, snapshot ) => {
-                                    if ( snapshot.isDragging ) {
-                                        provided.draggableProps.style.left = provided.draggableProps.style.offsetLeft;
-                                        provided.draggableProps.style.top = provided.draggableProps.style.offsetTop;
-                                    }
-                                    return (
-                                        <>
-                                        <div {...provided.dragHandleProps} {...provided.draggableProps} ref={provided.innerRef}>
-                                            <TaskView
-                                                task={ task }
-                                                tasks={ { tasks, setTasks } }
-                                                setRefreshComponent={ setRefreshComponent }
-                                            />
-                                            <div className="mt-2"></div>
-                                        </div>
-                                        { provided.placeholder }
-                                        </>
-                                    );
-                                } }
-                            </Draggable>
+                            <Fragment key={ index }>
+                                <div
+                                    className="draggable cursor-grab"
+                                    draggable
+                                    onDragStart={ ( e ) => onDragStart( e, task ) }
+                                >
+                                    <TaskView
+                                        task={ task }
+                                        tasks={ { tasks, setTasks } }
+                                        setRefreshComponent={ setRefreshComponent }
+                                    />
+                                </div>
+                                <div className="mt-[1px]"></div>
+                            </Fragment>
                         ) ) }
                     </>
                 ) }

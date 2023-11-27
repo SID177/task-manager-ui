@@ -25,6 +25,22 @@ const fetchTasks = async ( category = '' ) => {
     return tasks;
 };
 
+const fetchTask = async ( id ) => {
+    const url = `${apiBase}${taskPath}/${id}`;
+    const resp = await axios( url );
+
+    if ( ! resp || ! resp.data ) {
+        return false;
+    }
+
+    return {
+        id: resp.data.id,
+        title: resp.data.title.rendered.replace( /(<([^>]+)>)/ig, '' ),
+        description: resp.data.content.rendered.replace( /(<([^>]+)>)/ig, '' ),
+        category: resp.data.meta['task-category']
+    };
+};
+
 const createTask = async ( task ) => {
     const currentUser = getCurrentUserData();
 
@@ -84,4 +100,4 @@ const deleteTask = async ( task_id ) => {
     return resp;
 };
 
-export { fetchTasks, createTask, updateTask, deleteTask };
+export { fetchTasks, fetchTask, createTask, updateTask, deleteTask };

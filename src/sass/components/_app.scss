@@ -5,7 +5,8 @@
     }
 
     &__content-page {
-        max-width: 80%;
+        // max-width: 80%;
+        @apply px-4;
         margin: 0 auto;
     }
 

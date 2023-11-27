@@ -3,11 +3,9 @@ import _ from 'lodash';
 
 import { categories as glCategories } from '../utils/const';
 import { fetchCategories } from '../utils/categories';
-import { fetchTasks, updateTask } from '../utils/tasks';
 import TaskList from '../Components/TaskList';
 import NewCategory from '../Components/NewCategory';
 import Modal from '../Components/Modal';
-import { DragDropContext, Droppable } from "react-beautiful-dnd";
 
 const Tasks = ( { refresh } ) => {
 
@@ -42,37 +40,6 @@ const Tasks = ( { refresh } ) => {
         } );
     };
 
-    const handleDragDrop = ( results ) => {
-        const { destination, source, draggableId } = results;
-        console.log(results);
-
-        if ( ! destination || ! source ) {
-            return;
-        }
-
-        const { droppableId } = destination;
-        const { droppableId: sourceDroppableId } = source;
-
-        const sourceCategory = sourceDroppableId.split( '-' )[0];
-        const destinationCategory = droppableId.split( '-' )[0];
-        const taskId = parseInt( draggableId.split( '-' )[0] );
-
-        fetchTasks( sourceCategory )
-        .then( resp => {
-            const task = resp.find( tk => tk.id === taskId );
-            if ( ! task ) {
-                return;
-            }
-            if ( task.category !== destinationCategory ) {
-                task.category = destinationCategory;
-                console.log('new task');
-                console.log(task);
-                updateTask( task )
-                .then( handleFetchCategories );
-            }
-        } );
-    };
-
     useEffect( handleFetchCategories, [ appRefresh ] );
     useEffect( () => {
         glCategories.list = categories;
@@ -80,27 +47,21 @@ const Tasks = ( { refresh } ) => {
 
     return (
         <div className="tasks">
-            <div className="grid grid-cols-3 gap-[10px]">
+            <div className="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-[10px]">
 
                 { isFetching ? (
                     <span className="loading loading-spinner loading-lg text-primary"></span>
                 ) : (
-                    <DragDropContext onDragEnd={ handleDragDrop }>
+                    <>
                         { categories.map( ( category, index ) => (
-                            <Droppable key={ index } droppableId={ category.title + '-drop' } type="group">
-                                { ( provided ) => (
-                                    <div {...provided.droppableProps} ref={provided.innerRef}>
-                                        <TaskList
-                                            category={ category }
-                                            categories={ { categories, setCategories } }
-                                            refreshComponent={ { refreshComponent, setRefreshComponent } }
-                                        />
-                                        { provided.placeholder }
-                                    </div>
-                                ) }
-                            </Droppable>
+                            <TaskList
+                                key={ index }
+                                category={ category }
+                                categories={ { categories, setCategories } }
+                                refreshComponent={ { refreshComponent, setRefreshComponent } }
+                            />
                         ) ) }
-                    </DragDropContext>
+                    </>
                 ) }
 
                 { isNew ? (
@@ -111,10 +72,14 @@ const Tasks = ( { refresh } ) => {
                         } }
                     />
                 ) : (
-                    <button
-                        className="btn justify-start w-fit"
-                        onClick={ () => setIsNew( true ) }
-                    >+ New list</button>
+                    <div className="card card-compact glass h-min">
+                        <div className="card-body">
+                            <button
+                                className="btn justify-start w-full"
+                                onClick={ () => setIsNew( true ) }
+                            >+ New list</button>
+                        </div>
+                    </div>
                 ) }
             </div>
 
