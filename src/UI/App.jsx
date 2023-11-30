@@ -14,29 +14,29 @@ import Header from './Components/Header';
  */
 const App = () => {
 
-  const [ currentUser, setCurrentUser ] = useState( null );
-  const [ appRefresh, setAppRefresh ] = useState( false );
+  const [currentUser, setCurrentUser] = useState(null);
+  const [appRefresh, setAppRefresh] = useState(false);
 
   const user = getCurrentUser();
-  if ( ! isEmpty( user ) && isEmpty( currentUser ) ) {
-    setCurrentUser( user );
+  if (!isEmpty(user) && isEmpty(currentUser)) {
+    setCurrentUser(user);
   }
 
   return (
-    <div className={ 'app' + ( _.isEmpty( currentUser ) ? ' login' : '' ) + ' min-h-screen h-full bg-neutral' }>
-      { ! _.isEmpty( currentUser ) ? (
+    <div className={'app' + (_.isEmpty(currentUser) ? ' login' : '') + ' min-h-screen h-full bg-neutral'}>
+      {!_.isEmpty(currentUser) ? (
         <>
           <Header>
-            <Nav setCurrentUser={ setCurrentUser } refresh={ () => setAppRefresh( true ) } />
+            <Nav setCurrentUser={setCurrentUser} refresh={() => setAppRefresh(true)} />
           </Header>
 
           <div className="app__content">
-            <Page refresh={ { appRefresh, setAppRefresh } } />
+            <Page refresh={{ appRefresh, setAppRefresh }} />
           </div>
         </>
       ) : (
-        <Login setCurrentUser={ setCurrentUser } />
-      ) }
+        <Login setCurrentUser={setCurrentUser} />
+      )}
     </div>
   );
 };

@@ -1,16 +1,16 @@
-import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, setPersistence, inMemoryPersistence, browserSessionPersistence } from '@firebase/auth';
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, setPersistence, browserSessionPersistence } from '@firebase/auth';
 import { isNull } from 'lodash';
 
 const storageKey = 'login-user';
 const getStoredUser = () => {
     try {
-        return JSON.parse( localStorage.getItem( storageKey ) );
-    } catch ( e ) {
+        return JSON.parse(localStorage.getItem(storageKey));
+    } catch (e) {
         return false;
     }
 };
-const setStoredUser = ( user ) => localStorage.setItem( storageKey, JSON.stringify( user ) );
-const deleteStoredUser = () => localStorage.removeItem( storageKey );
+const setStoredUser = (user) => localStorage.setItem(storageKey, JSON.stringify(user));
+const deleteStoredUser = () => localStorage.removeItem(storageKey);
 
 const getCurrentUser = () => {
     const auth = getAuth();
@@ -25,23 +25,23 @@ const googleAuth = async () => {
     let error = null;
     let user = getCurrentUser();
 
-    if ( ! user ) {
+    if (!user) {
         try {
-            await setPersistence( auth, browserSessionPersistence );
-            result = await signInWithPopup( auth, provider );
-        } catch ( er ) {
+            await setPersistence(auth, browserSessionPersistence);
+            result = await signInWithPopup(auth, provider);
+        } catch (er) {
             error = er;
         }
 
-        if ( ! isNull( result ) ) {
-            const credential = GoogleAuthProvider.credentialFromResult( result );
+        if (!isNull(result)) {
+            const credential = GoogleAuthProvider.credentialFromResult(result);
             const token = credential.accessToken;
             user = result.user;
             user.token = token;
         }
     }
 
-    setStoredUser( user );
+    setStoredUser(user);
 
     return { user, error };
 };
@@ -52,9 +52,9 @@ const login = async () => {
 
 const logout = async () => {
     try {
-        await signOut( getAuth() );
+        await signOut(getAuth());
         deleteStoredUser();
-    } catch ( e ) {
+    } catch (e) {
         return e;
     }
 };

@@ -1,15 +1,15 @@
 import _ from "lodash";
 import Button from './Button';
 
-const Modal = ( {
+const Modal = ({
     message,
     isAlert = false,
     successButtonText = 'Yes',
     onSuccess,
     close
-} ) => {
+}) => {
 
-    if ( _.isEmpty( message ) ) {
+    if (_.isEmpty(message)) {
         return null;
     }
 
@@ -17,17 +17,17 @@ const Modal = ( {
         <dialog className="modal modal-bottom sm:modal-middle" open>
             <div className="modal-box">
                 <h3 className="font-bold text-lg">Alert</h3>
-                <p className="py-4">{ message }</p>
+                <p className="py-4">{message}</p>
                 <div className="modal-action">
-                    { ! isAlert && (
+                    {!isAlert && (
                         <Button
                             className="btn btn-primary mr-1"
-                            onClick={ onSuccess }
-                        >{ successButtonText }</Button>
-                    ) }
+                            onClick={onSuccess}
+                        >{successButtonText}</Button>
+                    )}
                     <Button
                         className="btn"
-                        onClick={ close }
+                        onClick={close}
                     >Close</Button>
                 </div>
             </div>

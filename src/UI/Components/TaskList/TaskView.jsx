@@ -5,102 +5,102 @@ import TaskEdit from './TaskEdit';
 import Alert from '../Alert';
 import { isEmpty } from 'lodash';
 
-const TaskView = ( {
+const TaskView = ({
     task,
     tasks,
     setRefreshComponent,
-} ) => {
+}) => {
 
-    const [ isDelete, setIsDelete ] = useState( false );
-    const [ confirmDelete, setConfirmDelete ] = useState( false );
-    const [ loading, setLoading ] = useState( false );
-    const [ edit, setEdit ] = useState( false );
-    const [ error, setError ] = useState( '' );
+    const [isDelete, setIsDelete] = useState(false);
+    const [confirmDelete, setConfirmDelete] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [edit, setEdit] = useState(false);
+    const [error, setError] = useState('');
     const { id: taskId, data: { title, description } } = task;
 
     const reset = () => {
-        setLoading( false );
-        setIsDelete( false );
-        setError( '' );
+        setLoading(false);
+        setIsDelete(false);
+        setError('');
     };
 
-    const handleDelete = ( resp ) => {
-        const newTasks = tasks.tasks.filter( tk => tk.id !== taskId );
-        tasks.setTasks( newTasks );
+    const handleDelete = (resp) => {
+        const newTasks = tasks.tasks.filter(tk => tk.id !== taskId);
+        tasks.setTasks(newTasks);
         reset();
     };
 
-    const handleError = ( e ) => {
+    const handleError = (e) => {
         reset();
-        setError( 'Something went wrong' );
+        setError('Something went wrong');
     };
 
-    if ( confirmDelete ) {
-        setConfirmDelete( false );
-        setLoading( true );
+    if (confirmDelete) {
+        setConfirmDelete(false);
+        setLoading(true);
 
-        deleteTask( taskId )
-        .then( handleDelete )
-        .catch( handleError );
+        deleteTask(taskId)
+            .then(handleDelete)
+            .catch(handleError);
     }
 
     return (
         <div className="card card-compact glass">
-            { isDelete ? (
+            {isDelete ? (
                 <Alert
-                    text={ `Delete ${title}?` }
+                    text={`Delete ${title}?`}
                     type="error"
                 >
                     <div className="join">
                         <Button
                             type="right"
                             className="join-item btn btn-square btn-sm"
-                            disabled={ loading }
-                            onClick={ () => setConfirmDelete( true ) }
+                            disabled={loading}
+                            onClick={() => setConfirmDelete(true)}
                         />
                         <Button
                             type="cancel"
                             className="join-item btn btn-square btn-sm"
-                            disabled={ loading }
-                            onClick={ () => setIsDelete( false ) }
+                            disabled={loading}
+                            onClick={() => setIsDelete(false)}
                         />
                     </div>
                 </Alert>
             ) : (
                 <div className="card-body">
-                    { ! isEmpty( error ) && <Alert text={ error } type="error" /> }
+                    {!isEmpty(error) && <Alert text={error} type="error" />}
 
-                    { edit ? (
+                    {edit ? (
                         <TaskEdit
-                            tasks={ tasks }
-                            task={ task }
-                            handles={ {
-                                cancel: () => setEdit( false )
-                            } }
-                            setRefreshComponent={ setRefreshComponent }
+                            tasks={tasks}
+                            task={task}
+                            handles={{
+                                cancel: () => setEdit(false)
+                            }}
+                            setRefreshComponent={setRefreshComponent}
                         />
                     ) : (
                         <>
                             <div className="card-title justify-between">
-                                <h2>{ title }</h2>
+                                <h2>{title}</h2>
                                 <div className="card-actions">
                                     <Button
                                         className="btn btn-square btn-xs"
-                                        onClick={ () => setEdit( true ) }
+                                        onClick={() => setEdit(true)}
                                         type="edit"
                                     />
                                     <Button
                                         className="btn btn-square btn-xs"
-                                        onClick={ () => setIsDelete( true ) }
+                                        onClick={() => setIsDelete(true)}
                                         type="cancel"
                                     />
                                 </div>
                             </div>
-                            <div>{ description }</div>
+                            <div>{description}</div>
                         </>
-                    ) }
+                    )}
                 </div>
-            ) }
+            )}
         </div>
     );
 };
