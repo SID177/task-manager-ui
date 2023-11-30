@@ -2,7 +2,7 @@ import _, { isEmpty } from 'lodash';
 import { useState } from 'react';
 import Alert from './Alert';
 import Button from './Button';
-import { saveCategories } from '../utils/categories';
+import { createCategory } from '../../Data/categories';
 
 const NewCategory = ( {
     categories: {
@@ -27,13 +27,10 @@ const NewCategory = ( {
             return;
         }
 
-        const newCategories = [ ...categories, category ];
-
-        saveCategories( newCategories )
+        createCategory( category )
         .then( resp => {
             setSaving( false );
-            setError( '' );
-            setCategories( newCategories );
+            setCategories( [ ...categories, { id: resp.id, data: category } ] );
             setCategory( null );
             cancel();
         } )

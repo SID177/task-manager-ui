@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { deleteTask } from '../../utils/tasks';
+import { deleteTask } from '../../../Data/tasks';
 import Button from '../Button';
 import TaskEdit from './TaskEdit';
 import Alert from '../Alert';
@@ -16,15 +16,22 @@ const TaskView = ( {
     const [ loading, setLoading ] = useState( false );
     const [ edit, setEdit ] = useState( false );
     const [ error, setError ] = useState( '' );
-    const { title, description } = task;
+    const { id: taskId, data: { title, description } } = task;
+
+    const reset = () => {
+        setLoading( false );
+        setIsDelete( false );
+        setError( '' );
+    };
 
     const handleDelete = ( resp ) => {
-        const newTasks = tasks.tasks.filter( tk => tk.id !== task.id );
+        const newTasks = tasks.tasks.filter( tk => tk.id !== taskId );
         tasks.setTasks( newTasks );
+        reset();
     };
 
     const handleError = ( e ) => {
-        setLoading( false );
+        reset();
         setError( 'Something went wrong' );
     };
 
@@ -32,7 +39,7 @@ const TaskView = ( {
         setConfirmDelete( false );
         setLoading( true );
 
-        deleteTask( task.id )
+        deleteTask( taskId )
         .then( handleDelete )
         .catch( handleError );
     }
@@ -41,7 +48,7 @@ const TaskView = ( {
         <div className="card card-compact glass">
             { isDelete ? (
                 <Alert
-                    text={ `Delete ${task.title}?` }
+                    text={ `Delete ${title}?` }
                     type="error"
                 >
                     <div className="join">

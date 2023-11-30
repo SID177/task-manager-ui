@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import _ from 'lodash';
+import _, { isEmpty } from 'lodash';
 
-import { getCurrentUserData } from './utils/login';
+import { getCurrentUser } from '../Data/auth';
 
 import Login from './Pages/Login';
-
 import Page from './Components/Page';
 import Nav from './Components/Nav';
 import Header from './Components/Header';
@@ -18,9 +17,9 @@ const App = () => {
   const [ currentUser, setCurrentUser ] = useState( null );
   const [ appRefresh, setAppRefresh ] = useState( false );
 
-  const savedUser = getCurrentUserData();
-  if ( _.isEmpty( currentUser ) && ! _.isEmpty( savedUser ) ) {
-    setCurrentUser( savedUser );
+  const user = getCurrentUser();
+  if ( ! isEmpty( user ) && isEmpty( currentUser ) ) {
+    setCurrentUser( user );
   }
 
   return (

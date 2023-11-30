@@ -5,11 +5,14 @@ import Alert from "../Alert";
 import TaskView from "./TaskView";
 import TaskEdit from "./TaskEdit";
 import Button from "../Button";
-import { fetchTask, fetchTasks, updateTask } from "../../utils/tasks";
-import { saveCategories } from "../../utils/categories";
+import { getTask, getTasks, updateTask } from "../../../Data/tasks";
+import { deleteCategory } from "../../../Data/categories";
 
 const TaskList = ( {
-    category,
+    category: {
+        id: categoryId,
+        data: category
+    },
     categories: {
         categories,
         setCategories
@@ -33,24 +36,24 @@ const TaskList = ( {
      */
     const handleFetchTasks = () => {
         setIsFetching( true );
-        fetchTasks( category.title )
+
+        getTasks( categoryId )
         .then( resp => {
             setIsFetching( false );
-            if ( ! resp ) {
-                setError( 'Something went wrong' );
-                return;
-            }
-            if ( ! _.isEmpty( error ) ) {
-                setError( '' );
-            }
-            setTasks( resp );
+
+            const newTasks = [];
+            Object.entries( resp )
+            .map( entry => newTasks.push( { id: entry[0], data: entry[1] } ) );
+
+            setTasks( newTasks );
         } );
     };
 
     // Initial fetch tasks.
     useEffect( handleFetchTasks, [] );
+
     useEffect( () => {
-        if ( category.title !== refreshComponent ) {
+        if ( categoryId !== refreshComponent ) {
             return;
         }
         setRefreshComponent( false );
@@ -67,66 +70,67 @@ const TaskList = ( {
             return;
         }
 
-        setIsFetching( true );
-
-        const newCategories = categories.filter( cat => cat.title !== category.title );
-        saveCategories( newCategories )
-        .then( resp => {
-            setIsFetching( false );
-            setCategories( newCategories );
-        } )
+        deleteCategory( categoryId )
+        .then( resp => setCategories( categories.filter( cat => cat.id !== categoryId ) ) )
         .catch( e => {
-            setIsFetching( false );
             setError( 'Could not delete this category' );
+            console.log(e);
         } );
     }
 
     const onDragStart = ( e, task ) => {
         e.dataTransfer.setData( 'id', task.id );
+        e.dataTransfer.setData( 'cat', task.data.category );
     };
 
-    const onDrop = ( e, categoryTitle ) => {
+    const onDrop = ( e, catId ) => {
         setDragEnterCategory( '' );
 
-        const taskId = parseInt( e.dataTransfer.getData( 'id' ) );
+        const taskId = e.dataTransfer.getData( 'id' );
+        const cat = e.dataTransfer.getData( 'cat' );
         if ( ! taskId ) {
             return;
         }
 
-        fetchTask( taskId )
-        .then( task => {
-            if ( task.category === categoryTitle ) {
-                return;
-            }
+        if ( cat === catId ) {
+            return;
+        }
 
-            setIsFetching( true );
+        setIsFetching( true );
+        getTask( taskId )
+        .then( ( { id, data } ) => {
+            const oldCat = data.category;
+            data.category = catId;
 
-            const oldCat = task.category;
-            task.category = categoryTitle;
-
-            updateTask( task )
+            updateTask( id, data )
             .then( () => {
                 setIsFetching( false );
-                const newTasks = [ ...tasks, task ];
-                setTasks( newTasks );
+                setTasks( [ ...tasks, { id, data } ] );
                 setRefreshComponent( oldCat );
             } )
-            .catch( e => setIsFetching( false ) );
+            .catch( e => {
+                console.log(e);
+                setIsFetching( false );
+                setError( 'Something went wrong' );
+            } );
         } )
-        .catch( e => setIsFetching( false ) );
+        .catch( e => {
+            console.log(e);
+            setError( 'Something went wrong' );
+        } );
     };
 
     const onDragOver = ( e ) => {
         e.preventDefault();
-        setDragEnterCategory( category.title );
+        setDragEnterCategory( categoryId );
     };
 
     return (
-        <div className={ `card card-compact ${category.title === dragEnterCategory ? 'bg-secondary' : 'bg-primary'} glass` }>
+        <div className={ `card card-compact ${categoryId === dragEnterCategory ? 'bg-secondary' : 'bg-primary'} glass` }>
 
             <div
                 className="card-body"
-                onDrop={ ( e ) => onDrop( e, category.title ) }
+                onDrop={ ( e ) => onDrop( e, categoryId ) }
                 onDragOver={ onDragOver }
                 onDragLeave={ ( e ) => setDragEnterCategory( '' ) }
             >
@@ -195,7 +199,7 @@ const TaskList = ( {
                                 handles={ {
                                     cancel: () => setIsNew( false )
                                 } }
-                                category={ category.title }
+                                categoryId={ categoryId }
                             />
                         </div>
                     </div>

@@ -1,33 +1,18 @@
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { fetchAvatar, logout } from '../utils/login';
+import { logout, getCurrentUser } from '../../Data/auth';
 import _ from 'lodash';
 
 const Nav = ( { setCurrentUser, refresh } ) => {
     const navigate = useNavigate();
 
-    const [ avatarUrl, setAvatarUrl ] = useState( '' );
-
     /**
      * Call logout functions.
      */
     const handleLogout = () => {
-        logout();
-        setCurrentUser( null );
-        navigate( '/' );
-    };
-
-    /**
-     * Fetch avatar.
-     */
-    const handleFetchAvatar = () => {
-        fetchAvatar()
-        .then( resp => {
-            if ( ! resp || ! _.isArray( resp.data ) ) {
-                return;
-            }
-
-            setAvatarUrl( resp.data[0].avatar_urls[48] );
+        logout()
+        .then( () => {
+            setCurrentUser( null );
+            navigate( '/' );
         } );
     };
 
@@ -35,8 +20,6 @@ const Nav = ( { setCurrentUser, refresh } ) => {
         navigate( '/' );
         refresh();
     };
-
-    useEffect( handleFetchAvatar, [] );
 
     return (
         <div className="navbar">
@@ -47,7 +30,7 @@ const Nav = ( { setCurrentUser, refresh } ) => {
                 <div className="dropdown dropdown-end">
                     <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
                         <div className="w-10 rounded-full">
-                            <img alt="Tailwind CSS Navbar component" src={ avatarUrl } />
+                            <img alt="Tailwind CSS Navbar component" src={ getCurrentUser().photoURL } />
                         </div>
                     </label>
                     <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-neutral rounded-box w-52 glass">

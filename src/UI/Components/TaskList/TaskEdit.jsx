@@ -1,7 +1,7 @@
 import _, { isArray, isEmpty, isFunction, isNull } from "lodash";
 import { useState } from "react";
-import { categories } from "../../utils/const";
-import { createTask, updateTask as updateTaskAPI } from "../../utils/tasks";
+import globals from "../../../Data/globals";
+import { createTask, updateTask as updateTaskAPI } from "../../../Data/tasks";
 import Button from "../Button";
 import Alert from "../Alert";
 
@@ -11,50 +11,42 @@ const TaskEdit = ( {
         setTasks
     },
     task: taskData = null,
-    category = null,
+    categoryId = null,
     handles: {
         cancel
     },
     setRefreshComponent,
 } ) => {
 
-    const { list: categoryList } = categories;
-    const isNew = ( isEmpty( taskData ) && ! isEmpty( category ) );
-    const [ task, setTask ] = useState( taskData );
+    const { categoryList } = globals;
+    const isNew = ( isEmpty( taskData ) && ! isEmpty( categoryId ) );
+    const [ task, setTask ] = useState( taskData?.data ? taskData.data : null );
     const [ error, setError ] = useState( false );
     const [ updating, setUpdating ] = useState( false );
+    const taskId = taskData?.id ? taskData.id : null;
 
     if ( isNew && isEmpty( task ) ) {
-        setTask( { ...task, category } );
+        setTask( { category: categoryId } );
     }
 
-    const updateTask = ( resp ) => {
-        const tempTasks = [];
-        tasks.forEach( newTask => {
-            if ( newTask.id !== task.id ) {
-                tempTasks.push( newTask );
-                return;
-            }
-
-            newTask = { ...newTask, ...task };
-
-            if ( newTask.category === taskData.category ) {
-                tempTasks.push( newTask );
-                return;
-            }
+    const updateTask = () => {
+        let tempTasks = [];
+        if ( taskData.category !== task.category ) {
+            tempTasks = tasks.filter( tsk => tsk.id !== taskId );
 
             if ( isFunction( setRefreshComponent ) ) {
-                setRefreshComponent( newTask.category );
+                setRefreshComponent( task.category );
             }
-        } );
-        setUpdating( false );
+        } else {
+            tempTasks = tasks.map( tsk => tsk.id !== taskId ? tsk : { ...tsk, data: task } );
+        }
         setTasks( tempTasks );
         cancel();
     };
 
     const saveTask = ( resp ) => {
         setUpdating( false );
-        setTasks( [ ...tasks, { ...task, id: resp.data.id } ] );
+        setTasks( [ ...tasks, { id: resp.id, data: task } ] );
         cancel();
     };
 
@@ -73,13 +65,15 @@ const TaskEdit = ( {
         setUpdating( true );
 
         if ( isNew ) {
-            createTask( task )
+            const newTask = _.clone( task );
+            setTask( newTask );
+            createTask( newTask )
             .then( saveTask )
             .catch( handleError );
             return;
         }
 
-        updateTaskAPI( task )
+        updateTaskAPI( taskId, _.clone( task ) )
         .then( updateTask )
         .catch( handleError );
     };
@@ -119,8 +113,8 @@ const TaskEdit = ( {
                             className="select select-bordered w-full max-w-xs"
                             onChange={ changeCategory }
                         >
-                            { categoryList.map( ( { title }, index ) => (
-                                <option key={ index } value={ title }>{ title }</option>
+                            { categoryList.map( ( { id, data: { title } }, index ) => (
+                                <option key={ index } value={ id }>{ title }</option>
                             ) ) }
                         </select>
                     ) }

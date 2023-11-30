@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import _ from 'lodash';
 
-import { categories as glCategories } from '../utils/const';
-import { fetchCategories } from '../utils/categories';
+import { getCategories } from '../../Data/categories';
+import globals from '../../Data/globals';
 import TaskList from '../Components/TaskList';
 import NewCategory from '../Components/NewCategory';
 import Modal from '../Components/Modal';
@@ -27,22 +27,18 @@ const Tasks = ( { refresh } ) => {
         }
 
         setIsFetching( true );
-        fetchCategories().then( resp => {
+        getCategories()
+        .then( resp => {
             setIsFetching( false );
-
-            if ( ! resp ) {
-                setError( `Something went wrong! Error: ${resp}` )
-                return;
-            }
-            if ( ! _.isEmpty( resp ) ) {
-                setCategories( resp );
-            }
+            const newCategories = [];
+            Object.entries( resp ).map( entry => newCategories.push( { id: entry[0], data: entry[1] } ) );
+            setCategories( newCategories );
         } );
     };
 
     useEffect( handleFetchCategories, [ appRefresh ] );
     useEffect( () => {
-        glCategories.list = categories;
+        globals.categoryList = categories;
     }, [ categories ] );
 
     return (
@@ -54,6 +50,7 @@ const Tasks = ( { refresh } ) => {
                 ) : (
                     <>
                         { categories.map( ( category, index ) => (
+
                             <TaskList
                                 key={ index }
                                 category={ category }
