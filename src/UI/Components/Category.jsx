@@ -148,12 +148,12 @@ const Category = ({
                     />
                 </div>
 
-                {!isEmpty(error) && <Alert text={error} type="error" />}
+                {!isEmpty(error) && <Alert text={error} type="warning" className="mb-2" />}
 
                 {isDelete && (
                     <Alert
                         text={`Delete ${category.title}?`}
-                        type="warning"
+                        type="error"
                         className="mb-2"
                     >
                         <div className="join">

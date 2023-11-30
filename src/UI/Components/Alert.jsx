@@ -25,9 +25,11 @@ const Alert = ({
     }
 
     return (
-        <div role="alert" className={`alert alert-${type} ${className}`}>
-            {Icon}
-            <span>{text}</span>
+        <div role="alert" className={`flex justify-between alert alert-${type} ${className}`}>
+            <div className="flex gap-2 items-center">
+                {Icon}
+                <span>{text}</span>
+            </div>
             <div>
                 {children}
             </div>

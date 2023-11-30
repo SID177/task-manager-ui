@@ -5,3 +5,20 @@
 body {
     margin: 0;
 }
+
+.alert {
+    @apply border-0;
+
+    &-error {
+        @apply bg-error;
+    }
+    &-success {
+        @apply bg-success;
+    }
+    &-info {
+        @apply bg-info;
+    }
+    &-warning {
+        @apply bg-warning;
+    }
+}
