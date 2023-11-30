@@ -86,19 +86,19 @@ const TaskEdit = ({
 
     return (
         <>
-            {!isEmpty(error) && <Alert text={error} />}
+            {!isEmpty(error) && <Alert text={error} type="info" className="!bg-neutral !text-neutral-content" />}
 
             <input
                 type="text"
                 placeholder="Enter title..."
-                className="input w-full"
+                className="task-input"
                 value={task?.title || ''}
                 onChange={changeTitle}
             />
 
             {!isEmpty(task?.title) && (
                 <textarea
-                    className="textarea w-full"
+                    className="task-textarea"
                     placeholder="Task description..."
                     value={task?.description || ''}
                     onChange={changeDescription}
@@ -112,7 +112,7 @@ const TaskEdit = ({
                     ) : (
                         <select
                             defaultValue={task?.category || ''}
-                            className="select select-bordered w-full max-w-xs"
+                            className="task-select"
                             onChange={changeCategory}
                         >
                             {categoryList.map(({ id, data: { title } }, index) => (
@@ -123,7 +123,7 @@ const TaskEdit = ({
                 </>
             )}
 
-            <div className="card-actions justify-end">
+            <div className="card-actions justify-end mt-[5px]">
                 <div className="join">
                     <Button
                         className="btn join-item btn-sm"

@@ -131,7 +131,7 @@ const Category = ({
     };
 
     return (
-        <div className={`category ${categoryId === dragEnterCategory ? 'bg-secondary' : 'bg-primary'} card card-compact glass`}>
+        <div className={`category ${categoryId === dragEnterCategory ? 'bg-secondary' : 'bg-primary'} card card-compact glass max-h-[40rem] h-fit overflow-auto`}>
 
             <div
                 className="card-body"
@@ -144,76 +144,84 @@ const Category = ({
                     <h2>{category.title}</h2>
                     <Button
                         onClick={() => setIsDelete(!isDelete)}
+                        className=""
                         type="cancel"
                     />
                 </div>
 
-                {!isEmpty(error) && <Alert text={error} type="warning" className="mb-2" />}
-
-                {isDelete && (
-                    <Alert
-                        text={`Delete ${category.title}?`}
-                        type="error"
-                        className="mb-2"
-                    >
-                        <div className="join">
-                            <Button
-                                className="join-item btn btn-square btn-sm"
-                                onClick={() => setConfirmDelete(true)}
-                                disabled={isFetching}
-                                type="right"
-                            />
-                            <Button
-                                onClick={() => setIsDelete(false)}
-                                className="join-item btn btn-square btn-sm"
-                                disabled={isFetching}
-                                type="cancel"
-                            />
-                        </div>
-                    </Alert>
-                )}
-
-                {isFetching ? (
-                    <span className="loading loading-spinner loading-lg text-primary"></span>
-                ) : (
-                    <>
-                        {tasks.map((task, index) => (
-                            <Fragment key={index}>
-                                <div
-                                    className="draggable cursor-grab"
-                                    draggable
-                                    onDragStart={(e) => onDragStart(e, task)}
-                                >
-                                    <TaskView
-                                        task={task}
-                                        tasks={{ tasks, setTasks }}
-                                        setRefreshComponent={setRefreshComponent}
-                                    />
+                <div className="mb-[10px]">
+                    {!isEmpty(error) && <Alert text={error} type="warning" className="mb-2" />}
+                    {isDelete && (
+                        <Alert
+                            text={`Delete ${category.title}?`}
+                            type="error"
+                            className="mb-2 bg-secondary text-secondary-content"
+                        >
+                            <div className="join">
+                                <Button
+                                    className="join-item btn-square btn-sm hover:text-secondary-content"
+                                    onClick={() => setConfirmDelete(true)}
+                                    disabled={isFetching}
+                                    type="right"
+                                />
+                                <Button
+                                    onClick={() => setIsDelete(false)}
+                                    className="join-item btn-square btn-sm hover:text-secondary-content"
+                                    disabled={isFetching}
+                                    type="cancel"
+                                />
+                            </div>
+                        </Alert>
+                    )}
+                    {(isEmpty(error) && !isDelete) && (
+                        <>
+                            {isNew ? (
+                                <div className="card card-compact bg-secondary glass">
+                                    <div className="card-body">
+                                        <TaskEdit
+                                            tasks={{ tasks, setTasks }}
+                                            handles={{
+                                                cancel: () => setIsNew(false)
+                                            }}
+                                            categoryId={categoryId}
+                                        />
+                                    </div>
                                 </div>
-                                <div className="mt-[1px]"></div>
-                            </Fragment>
-                        ))}
-                    </>
-                )}
+                            ) : (
+                                <Button
+                                    className="btn w-fit block bg-secondary glass flex center"
+                                    onClick={() => setIsNew(true)}
+                                    type="plus"
+                                />
+                            )}
+                        </>
+                    )}
+                </div>
 
-                {(isNew) ? (
-                    <div className="card card-compact glass">
-                        <div className="card-body">
-                            <TaskEdit
-                                tasks={{ tasks, setTasks }}
-                                handles={{
-                                    cancel: () => setIsNew(false)
-                                }}
-                                categoryId={categoryId}
-                            />
-                        </div>
-                    </div>
-                ) : (
-                    <Button
-                        className="btn w-full justify-start"
-                        onClick={() => setIsNew(true)}
-                    >+ Add card</Button>
-                )}
+                <div className="flex flex-col gap-[10px]">
+                    {isFetching ? (
+                        <span className="loading loading-spinner loading-lg text-primary"></span>
+                    ) : (
+                        <>
+                            {tasks.map((task, index) => (
+                                <Fragment key={index}>
+                                    <div
+                                        className="draggable cursor-grab"
+                                        draggable
+                                        onDragStart={(e) => onDragStart(e, task)}
+                                    >
+                                        <TaskView
+                                            task={task}
+                                            tasks={{ tasks, setTasks }}
+                                            setRefreshComponent={setRefreshComponent}
+                                        />
+                                    </div>
+                                    <div className="mt-[1px]"></div>
+                                </Fragment>
+                            ))}
+                        </>
+                    )}
+                </div>
             </div>
         </div>
     );

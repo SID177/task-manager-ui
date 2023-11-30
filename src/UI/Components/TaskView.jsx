@@ -48,22 +48,23 @@ const TaskView = ({
     }
 
     return (
-        <div className="card card-compact glass">
+        <div className={`card card-compact ${edit ? 'bg-secondary' : 'bg-primary'} glass`}>
             {isDelete ? (
                 <Alert
                     text={`Delete ${title}?`}
                     type="error"
+                    className="bg-error glass border-0 hover:border-error"
                 >
                     <div className="join">
                         <Button
                             type="right"
-                            className="join-item btn btn-square btn-sm"
+                            className="join-item btn-sm btn-square hover:text-white"
                             disabled={loading}
                             onClick={() => setConfirmDelete(true)}
                         />
                         <Button
                             type="cancel"
-                            className="join-item btn btn-square btn-sm"
+                            className="join-item btn-sm btn-square hover:text-white"
                             disabled={loading}
                             onClick={() => setIsDelete(false)}
                         />
@@ -88,18 +89,18 @@ const TaskView = ({
                                 <h2>{title}</h2>
                                 <div className="card-actions">
                                     <Button
-                                        className="btn btn-square btn-xs"
+                                        className="btn-square btn-xs hover:text-white"
                                         onClick={() => setEdit(true)}
                                         type="edit"
                                     />
                                     <Button
-                                        className="btn btn-square btn-xs"
+                                        className="btn-square btn-xs hover:text-white"
                                         onClick={() => setIsDelete(true)}
                                         type="cancel"
                                     />
                                 </div>
                             </div>
-                            <div>{description}</div>
+                            <div className="overflow-auto max-h-64">{description}</div>
                         </>
                     )}
                 </div>

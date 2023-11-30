@@ -45,12 +45,12 @@ const NewCategory = ({
     return (
         <div className="card card-compact glass h-fit">
             <div className="card-body">
-                {!isEmpty(error) && <Alert message={error} type="error" />}
+                {!isEmpty(error) && <Alert text={error} type="error" className="!bg-neutral !text-secondary-content" />}
 
                 <input
                     type="text"
                     placeholder="Enter title..."
-                    className="input w-full"
+                    className="task-input !text-secondary-content placeholder:text-secondary-content"
                     value={category?.title || ''}
                     onChange={(e) => setCategory({ ...category, title: e.target.value })}
                 />
@@ -58,13 +58,13 @@ const NewCategory = ({
                     <>
                         <textarea
                             placeholder="Enter description..."
-                            className="textarea w-full"
+                            className="task-textarea !text-secondary-content placeholder:text-secondary-content"
                             value={category?.description || ''}
                             onChange={(e) => setCategory({ ...category, description: e.target.value })}
                         />
                     </>
                 )}
-                <div className="card-actions justify-end">
+                <div className="card-actions justify-end mt-[5px]">
                     <div className="join">
                         <Button
                             className="btn join-item btn-sm"
