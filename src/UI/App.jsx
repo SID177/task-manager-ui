@@ -30,7 +30,7 @@ const App = () => {
             <Nav setCurrentUser={setCurrentUser} refresh={() => setAppRefresh(true)} />
           </Header>
 
-          <div className="app__content">
+          <div className="w-full py-8">
             <Page refresh={{ appRefresh, setAppRefresh }} />
           </div>
         </>

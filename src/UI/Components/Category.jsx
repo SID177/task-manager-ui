@@ -1,14 +1,19 @@
-import _, { isEmpty } from "lodash";
 import { useState, useEffect, Fragment } from "react";
+import { isEmpty } from "lodash";
 
-import Alert from "../Alert";
+import Button from "./Button";
 import TaskView from "./TaskView";
 import TaskEdit from "./TaskEdit";
-import Button from "../Button";
-import { getTask, getTasks, updateTask } from "../../../Data/tasks";
-import { deleteCategory } from "../../../Data/categories";
+import Alert from "./Alert";
 
-const TaskList = ({
+import { getTasks, getTask, updateTask } from "../../Data/tasks";
+import { deleteCategory } from "../../Data/categories";
+
+/**
+ * @param {Object} props
+ * @returns JSX
+ */
+const Category = ({
     category: {
         id: categoryId,
         data: category
@@ -126,7 +131,7 @@ const TaskList = ({
     };
 
     return (
-        <div className={`card card-compact ${categoryId === dragEnterCategory ? 'bg-secondary' : 'bg-primary'} glass`}>
+        <div className={`category ${categoryId === dragEnterCategory ? 'bg-secondary' : 'bg-primary'} card card-compact glass`}>
 
             <div
                 className="card-body"
@@ -214,4 +219,4 @@ const TaskList = ({
     );
 };
 
-export default TaskList;
+export default Category;

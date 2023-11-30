@@ -1,9 +1,12 @@
-import { useState } from 'react';
-import { deleteTask } from '../../../Data/tasks';
-import Button from '../Button';
-import TaskEdit from './TaskEdit';
-import Alert from '../Alert';
 import { isEmpty } from 'lodash';
+import { useState } from 'react';
+
+
+import TaskEdit from './TaskEdit';
+import Alert from './Alert';
+import Button from './Button';
+
+import { deleteTask } from '../../Data/tasks';
 
 const TaskView = ({
     task,

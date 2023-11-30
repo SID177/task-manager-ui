@@ -2,11 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import 'includes/variables';
-@import 'includes/common';
-
-@import 'components/app';
-@import 'components/header';
-@import 'components/navigation';
-
-@import 'pages/login';
+body {
+    margin: 0;
+}

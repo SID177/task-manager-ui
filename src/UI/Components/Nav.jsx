@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
+
 import { logout, getCurrentUser } from '../../Data/auth';
-import _ from 'lodash';
 
 const Nav = ({ setCurrentUser, refresh }) => {
     const navigate = useNavigate();

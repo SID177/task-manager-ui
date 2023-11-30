@@ -1,9 +1,11 @@
-import _, { isArray, isEmpty, isFunction, isNull } from "lodash";
+import { isArray, isEmpty, isFunction, clone } from "lodash";
 import { useState } from "react";
-import globals from "../../../Data/globals";
-import { createTask, updateTask as updateTaskAPI } from "../../../Data/tasks";
-import Button from "../Button";
-import Alert from "../Alert";
+
+import Button from "./Button";
+import Alert from "./Alert";
+import globals from "../../Data/globals";
+
+import { updateTask as updateTaskAPI, createTask } from "../../Data/tasks";
 
 const TaskEdit = ({
     tasks: {
@@ -65,7 +67,7 @@ const TaskEdit = ({
         setUpdating(true);
 
         if (isNew) {
-            const newTask = _.clone(task);
+            const newTask = clone(task);
             setTask(newTask);
             createTask(newTask)
                 .then(saveTask)
@@ -73,7 +75,7 @@ const TaskEdit = ({
             return;
         }
 
-        updateTaskAPI(taskId, _.clone(task))
+        updateTaskAPI(taskId, clone(task))
             .then(updateTask)
             .catch(handleError);
     };

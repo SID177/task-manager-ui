@@ -1,4 +1,4 @@
-import _ from "lodash";
+import { isEmpty } from "lodash";
 import Button from './Button';
 
 const Modal = ({
@@ -9,7 +9,7 @@ const Modal = ({
     close
 }) => {
 
-    if (_.isEmpty(message)) {
+    if (isEmpty(message)) {
         return null;
     }
 

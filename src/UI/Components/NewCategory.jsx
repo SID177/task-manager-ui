@@ -1,7 +1,9 @@
-import _, { isEmpty } from 'lodash';
+import { isEmpty } from 'lodash';
 import { useState } from 'react';
+
 import Alert from './Alert';
 import Button from './Button';
+
 import { createCategory } from '../../Data/categories';
 
 const NewCategory = ({

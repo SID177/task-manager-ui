@@ -1,4 +1,4 @@
-import _, { isEmpty } from 'lodash';
+import { isEmpty, isNull } from 'lodash';
 import { useState } from 'react';
 import { login } from '../../Data/auth';
 import Alert from '../Components/Alert';
@@ -13,7 +13,7 @@ const Login = ({ setCurrentUser }) => {
 
         login()
             .then(({ user, error }) => {
-                if (!_.isNull(user)) {
+                if (!isNull(user)) {
                     setLoginResponse('');
                     setCurrentUser(user);
                 }
@@ -25,7 +25,7 @@ const Login = ({ setCurrentUser }) => {
         return false;
     };
 
-    if (!_.isEmpty(loginResponse)) {
+    if (!isEmpty(loginResponse)) {
         setTimeout(() => setLoginResponse(false), 5000);
     }
 
@@ -34,7 +34,7 @@ const Login = ({ setCurrentUser }) => {
             <div className="hero-content w-full">
                 <div className="card shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
                     <form className="card-body" onSubmit={handleLogin}>
-                        {!_.isEmpty(loginResponse) && <Alert text={loginResponse} />}
+                        {!isEmpty(loginResponse) && <Alert text={loginResponse} />}
                         {/* <div className="form-control">
                             <label className="label">
                                 <span className="label-text">Username or Email</span>

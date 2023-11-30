@@ -3,7 +3,7 @@ import _ from 'lodash';
 
 import { getCategories } from '../../Data/categories';
 import globals from '../../Data/globals';
-import TaskList from '../Components/TaskList';
+import Category from '../Components/Category';
 import NewCategory from '../Components/NewCategory';
 import Modal from '../Components/Modal';
 
@@ -51,7 +51,7 @@ const Tasks = ({ refresh }) => {
                     <>
                         {categories.map((category, index) => (
 
-                            <TaskList
+                            <Category
                                 key={index}
                                 category={category}
                                 categories={{ categories, setCategories }}
