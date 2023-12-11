@@ -1,77 +1,89 @@
-import { collection, getDocs, doc, getDoc, query, where, setDoc, deleteDoc, addDoc } from "@firebase/firestore";
-import { isEmpty, isString } from "lodash";
-import { db } from "./_db";
+import { isArray, isEmpty, isString } from "lodash";
+import { apiEndpoint, dataSource, database } from "./_db";
 import { getCurrentUser } from "./auth";
+import axios from "axios";
 
 let currentUser = null;
 
-const isValid = (type) => {
+const isValid = () => {
     currentUser = getCurrentUser();
-    return (!isEmpty(type) && isString(type) && !isEmpty(currentUser));
+    return !isEmpty(currentUser) && !isEmpty(currentUser.access_token);
 };
 
-const get = async (type = '', id = '') => {
-    if (!isValid(type) || isEmpty(id)) {
-        return false;
-    }
-    const docRef = doc(db, type, id);
-    const docSnap = await getDoc(docRef);
-    if (!docSnap.exists()) {
-        return null;
-    }
-    return { id: docSnap.id, data: docSnap.data() };
-};
+const getHeaders = () => ({
+    'Authorization': `Bearer ${currentUser.access_token}`
+});
 
-const getRef = (type = '', id = '') => {
-    if (!isValid(type) || isEmpty(id)) {
-        return;
-    }
-    const ref = doc(db, type.toLowerCase(), id);
-    return ref;
-};
-
-const getAll = async (type = '', qry = null) => {
-    if (!isValid(type) || isEmpty(currentUser)) {
+const get = async ( url, collection, filter = null, output = null ) => {
+    if ( ! isValid() ) {
         return false;
     }
 
-    const userCond = where('userId', '==', currentUser.uid);
-
-    let config = query(collection(db, type), userCond);
-    if (!isEmpty(qry)) {
-        const field = Object.keys(qry)[0];
-        const value = Object.values(qry)[0];
-        config = query(collection(db, type), where(field, '==', value), userCond);
+    const headers = getHeaders();
+    const data = {
+        collection,
+        database,
+        dataSource,
+    };
+    if ( output ) {
+        data.projection = output;
+    }
+    if ( filter ) {
+        data.filter = filter;
+    } else {
+        data.filter = { user_id: currentUser.user_id };
     }
 
-    const querySnapshot = await getDocs(config);
-    const data = {};
-    querySnapshot.forEach((doc) => (data[doc.id] = doc.data()));
-
-    return data;
+    let response = null;
+    try {
+        response = await axios.post( url, data, { headers } );
+        if ( resp && 200 === resp?.status && isArray( resp?.data?.documents ) ) {
+            return response.data.documents;
+        }
+    } catch ( e ) {
+        return {
+            error: true
+        }
+    }
+    return null;
 };
 
-const update = async (type = '', data = null) => {
-    if (!isValid(type) || isEmpty(data)) {
+const getOneRequest = async (collection, output = null) => {
+    return await get( apiEndpoint + 'findOne', collection, output );
+};
+
+const getAllRequest = async ( collection, output = null ) => {
+    return await get( apiEndpoint + 'find', collection, output );
+};
+
+const insertOne = async ( collection, document ) => {
+    if ( ! isValid() ) {
         return false;
     }
-    data.data.userId = currentUser.uid;
-    return await setDoc(doc(db, type, data.id), data.data);
-};
 
-const add = async (type = '', data = null) => {
-    if (!isValid(type) || isEmpty(data)) {
-        return false;
+    if ( document ) {
+        document.user_id = currentUser.user_id;
     }
-    data.userId = currentUser.uid;
-    return await addDoc(collection(db, type), data);
-};
+    const data = {
+        collection,
+        database,
+        dataSource,
+        document
+    };
 
-const remove = async (type = '', id = '') => {
-    if (!isValid(type) || isEmpty(id)) {
-        return false;
+    let response = null;
+    try {
+        response = await axios.post( apiEndpoint + 'insertOne', data, { headers: getHeaders() } );
+        if ( response && 201 === response.status && ! isEmpty( response?.data?.insertedId ) ) {
+            return response.data.insertedId;
+        }
+    } catch ( e ) {
+        return {
+            error: true,
+        };
     }
-    return await deleteDoc(doc(db, type, id));
+
+    return null;
 };
 
-export { getAll, get, getRef, update, db, add, remove };
+export { getOneRequest, getAllRequest, insertOne };

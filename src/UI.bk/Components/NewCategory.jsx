@@ -32,7 +32,7 @@ const NewCategory = ({
         createCategory(category)
             .then(resp => {
                 setSaving(false);
-                setCategories([...categories, { id: resp, ...category }]);
+                setCategories([...categories, { id: resp.id, data: category }]);
                 setCategory(null);
                 cancel();
             })

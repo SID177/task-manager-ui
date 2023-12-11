@@ -4,12 +4,12 @@ import { Routes, Route, useNavigate } from 'react-router-dom';
 
 import { getCurrentUser, logout, login } from '../Data/auth';
 
-import Login from './Pages/Login';
-import Page from './Components/Page';
-import Nav from './Components/Nav';
-import Header from './Components/Header';
-import Tasks from "./Pages/Tasks";
-import NotFound from './Pages/404';
+// import Login from './Pages/Login';
+// import Page from './Components/Page';
+// import Nav from './Components/Nav';
+// import Header from './Components/Header';
+// import Tasks from "./Pages/Tasks";
+// import NotFound from './Pages/404';
 
 /**
  * 
@@ -21,32 +21,35 @@ const App = () => {
   const [appRefresh, setAppRefresh] = useState(false);
   const navigate = useNavigate();
 
-  const user = getCurrentUser();
-  console.log('user', user);
-  if (!isEmpty(user) && isEmpty(currentUser)) {
-    setCurrentUser(user);
-  }
+  login();
 
-  const handleLogout = () => {
-    logout();
-    setCurrentUser(null);
-    navigate('/');
-  };
+  // const user = getCurrentUser();
+  // if (!isEmpty(user) && isEmpty(currentUser)) {
+  //   setCurrentUser(user);
+  // }
 
-  const handleRefresh = () => {
-    navigate('/');
-    setAppRefresh(true);
-  };
+  // const handleLogout = () => {
+  //   logout()
+  //     .then(() => {
+  //       setCurrentUser(null);
+  //       navigate( '/' );
+  //     });
+  // };
+
+  // const handleRefresh = () => {
+  //   navigate( '/' );
+  //   setAppRefresh(true);
+  // };
 
   return (
     <div className={'app' + (_.isEmpty(currentUser) ? ' login' : '') + ' min-h-screen h-full bg-neutral'}>
-      {!_.isEmpty(currentUser) ? (
+      {/* {!_.isEmpty(currentUser) ? (
         <>
           <Header>
             <Nav
-              handleRefresh={handleRefresh}
-              handleLogout={handleLogout}
-              profilePic={''}
+              handleRefresh={ handleRefresh }
+              handleLogout={ handleLogout }
+              profilePic={ user.photoURL }
             />
           </Header>
 
@@ -61,7 +64,7 @@ const App = () => {
         </>
       ) : (
         <Login setCurrentUser={setCurrentUser} />
-      )}
+      )} */}
     </div>
   );
 };

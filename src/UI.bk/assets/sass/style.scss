@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    margin: 0;
+}
+
+.alert {
+    @apply border-0 text-current;
+
+    &-error {
+        @apply bg-error;
+    }
+    &-success {
+        @apply bg-success;
+    }
+    &-info {
+        @apply bg-info;
+    }
+    &-warning {
+        @apply bg-warning;
+    }
+}
+
+.task-input {
+    @apply input w-full px-[5px] bg-transparent border-neutral opacity-100 border-0 border-b text-current placeholder:text-current rounded-none focus:outline-none outline-none border-0 shadow-none;
+}
+
+.task-textarea {
+    @apply textarea h-32 max-h-64 pt-0 w-full px-[5px] bg-transparent border-neutral opacity-100 border-0 border-b text-current placeholder:text-current rounded-none focus:outline-none outline-none border-0 shadow-none;
+}
+
+.task-select {
+    @apply select select-bordered w-full px-[5px] bg-transparent border-neutral opacity-100 border-0 border-b text-current placeholder:text-current rounded-none focus:outline-none outline-none border-0 shadow-none;
+}

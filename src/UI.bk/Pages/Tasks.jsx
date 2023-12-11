@@ -3,7 +3,7 @@ import _ from 'lodash';
 
 import { getCategories } from '../../Data/categories';
 import globals from '../../Data/globals';
-// import Category from '../Components/Category';
+import Category from '../Components/Category';
 import NewCategory from '../Components/NewCategory';
 import Modal from '../Components/Modal';
 
@@ -27,13 +27,13 @@ const Tasks = ({ refresh }) => {
         }
 
         setIsFetching(true);
-        // getCategories()
-        //     .then(resp => {
-        //         setIsFetching(false);
-        //         const newCategories = [];
-        //         Object.entries(resp).map(entry => newCategories.push({ id: entry[0], data: entry[1] }));
-        //         setCategories(newCategories);
-        //     });
+        getCategories()
+            .then(resp => {
+                setIsFetching(false);
+                const newCategories = [];
+                Object.entries(resp).map(entry => newCategories.push({ id: entry[0], data: entry[1] }));
+                setCategories(newCategories);
+            });
     };
 
     useEffect(handleFetchCategories, [appRefresh]);
@@ -45,7 +45,7 @@ const Tasks = ({ refresh }) => {
         <div className="tasks">
             <div className="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-[10px]">
 
-                {/* {isFetching ? (
+                {isFetching ? (
                     <span className="loading loading-spinner loading-lg text-primary"></span>
                 ) : (
                     <>
@@ -59,7 +59,7 @@ const Tasks = ({ refresh }) => {
                             />
                         ))}
                     </>
-                )} */}
+                )}
 
                 {isNew ? (
                     <NewCategory

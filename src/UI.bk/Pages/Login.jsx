@@ -1,4 +1,4 @@
-import { isEmpty } from 'lodash';
+import { isEmpty, isNull } from 'lodash';
 import { useState } from 'react';
 import { login } from '../../Data/auth';
 import Alert from '../Components/Alert';
@@ -6,37 +6,20 @@ import Alert from '../Components/Alert';
 const Login = ({ setCurrentUser }) => {
     const [loginResponse, setLoginResponse] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [user, setUser] = useState({
-        username: '',
-        password: '',
-    });
 
     const handleLogin = (e) => {
         e.preventDefault();
         setLoading(true);
 
-        login(user)
-            .then(resp => {
-                setLoading(false);
-
-                if (!resp) {
-                    setLoginResponse('Something went wrong.');
-                    return;
+        login()
+            .then(({ user, error }) => {
+                if (!isNull(user)) {
+                    setLoginResponse('');
+                    setCurrentUser(user);
                 }
-
-                console.log('response', resp);
-
-                if (true === resp?.error) {
-                    setLoginResponse(resp.message);
-                    return;
+                if (!isEmpty(error?.message)) {
+                    setLoginResponse(error.message);
                 }
-
-                setLoginResponse('');
-                setCurrentUser(resp);
-            })
-            .catch(() => {
-                setLoading(false);
-                setLoginResponse('Something went wrong.');
             });
 
         return false;
@@ -52,13 +35,13 @@ const Login = ({ setCurrentUser }) => {
                 <div className="card shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
                     <form className="card-body" onSubmit={handleLogin}>
                         {!isEmpty(loginResponse) && <Alert text={loginResponse} />}
-                        <div className="form-control">
+                        {/* <div className="form-control">
                             <label className="label">
                                 <span className="label-text">Username or Email</span>
                             </label>
                             <input
-                                value={user.username}
-                                onChange={(e) => setUser({ ...user, username: e.target.value })}
+                                value={ username }
+                                onChange={ ( e ) => setUsername( e.target.value ) }
                                 type="text"
                                 placeholder="username or email"
                                 className="input input-bordered"
@@ -73,13 +56,13 @@ const Login = ({ setCurrentUser }) => {
                                 type="password"
                                 placeholder="password"
                                 className="input input-bordered"
-                                value={user.password}
-                                onChange={(e) => setUser({ ...user, password: e.target.value })}
+                                value={ password }
+                                onChange={ ( e ) => setPassword( e.target.value ) }
                                 required
                             />
-                        </div>
-                        <div className="form-control mt-4">
-                            <button disabled={loading} className="btn btn-primary">Login</button>
+                        </div> */}
+                        <div className="form-control mt-0">
+                            <button role="login-button" disabled={loading} className="btn btn-primary">Login with Google</button>
                         </div>
                     </form>
                 </div>

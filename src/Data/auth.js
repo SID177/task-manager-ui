@@ -1,5 +1,6 @@
-import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, setPersistence, browserSessionPersistence } from '@firebase/auth';
-import { isNull } from 'lodash';
+import { loginEndpoint } from './_db';
+import axios from 'axios';
+import { isEmpty } from 'lodash';
 
 const storageKey = 'login-user';
 const getStoredUser = () => {
@@ -12,51 +13,29 @@ const getStoredUser = () => {
 const setStoredUser = (user) => localStorage.setItem(storageKey, JSON.stringify(user));
 const deleteStoredUser = () => localStorage.removeItem(storageKey);
 
-const getCurrentUser = () => {
-    const auth = getAuth();
-    return auth.currentUser || getStoredUser();
-};
+const getCurrentUser = () => getStoredUser();
+const setCurrentUser = (user) => setStoredUser(user);
 
-const googleAuth = async () => {
-    const provider = new GoogleAuthProvider();
-    const auth = getAuth();
-
-    let result = null;
-    let error = null;
-    let user = getCurrentUser();
-
-    if (!user) {
-        try {
-            await setPersistence(auth, browserSessionPersistence);
-            result = await signInWithPopup(auth, provider);
-        } catch (er) {
-            error = er;
-        }
-
-        if (!isNull(result)) {
-            const credential = GoogleAuthProvider.credentialFromResult(result);
-            const token = credential.accessToken;
-            user = result.user;
-            user.token = token;
-        }
-    }
-
-    setStoredUser(user);
-
-    return { user, error };
-};
-
-const login = async () => {
-    return await googleAuth();
-};
-
-const logout = async () => {
+const login = async (user) => {
     try {
-        await signOut(getAuth());
-        deleteStoredUser();
+        const response = await axios.post(loginEndpoint, user);
+        if (!isEmpty(response?.data)) {
+            setCurrentUser(response.data);
+            return response.data;
+        }
     } catch (e) {
-        return e;
+        if (!isEmpty(e?.response?.data?.error) && 'invalid username/password' === e?.response?.data?.error) {
+            return {
+                error: true,
+                message: 'Invalid username or password',
+            }
+        }
     }
+    return null;
 };
 
-export { getCurrentUser, login, logout };
+const logout = () => {
+    deleteStoredUser();
+};
+
+export { getCurrentUser, login, logout, setCurrentUser };
